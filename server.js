@@ -251,67 +251,118 @@ try {
   console.error('Error loading question files. Make sure easy.json, medium.json, and hard.json exist in /questions:', error.message);
 }
 
-// Math Game Logic & Map Graph definition
+// Harta României - Județe (42 teritorii)
 const territoriesList = [
-  { id: 1, name: "Matrice", x: 100, y: 100 },
-  { id: 2, name: "Determinant", x: 100, y: 300 },
-  { id: 3, name: "Sistem", x: 100, y: 500 },
-  { id: 4, name: "Cramer", x: 250, y: 500 },
-  { id: 5, name: "Rouché", x: 250, y: 350 },
-  { id: 6, name: "Kronecker", x: 250, y: 200 },
-  { id: 7, name: "Limită", x: 400, y: 100 },
-  { id: 8, name: "Asimptotă", x: 400, y: 250 },
-  { id: 9, name: "Continuitate", x: 400, y: 450 },
-  { id: 10, name: "Derivată", x: 550, y: 450 },
-  { id: 11, name: "Derivabilitate", x: 550, y: 250 },
-  { id: 12, name: "Rolle", x: 550, y: 100 },
-  { id: 13, name: "Lagrange", x: 700, y: 100 },
-  { id: 14, name: "L'Hospital", x: 700, y: 250 },
-  { id: 15, name: "Darboux", x: 700, y: 450 },
-  { id: 16, name: "Monotonie", x: 850, y: 450 },
-  { id: 17, name: "Convexitate", x: 850, y: 250 },
-  { id: 18, name: "Inflexiune", x: 850, y: 100 },
-  { id: 19, name: "Tangenta", x: 950, y: 200 },
-  { id: 20, name: "Injectivitate", x: 950, y: 400 },
-  { id: 21, name: "Surjectivitate", x: 950, y: 500 },
-  { id: 22, name: "Bijectivitate", x: 800, y: 550 },
-  { id: 23, name: "Inversa", x: 650, y: 550 },
-  { id: 24, name: "Transpusă", x: 200, y: 80 },
-  { id: 25, name: "Rang", x: 200, y: 280 },
-  { id: 26, name: "Adunare", x: 300, y: 80 },
-  { id: 27, name: "Înmulțire", x: 300, y: 480 },
-  { id: 28, name: "Punct Critic", x: 600, y: 400 },
-  { id: 29, name: "Discontinuitate", x: 450, y: 520 },
-  { id: 30, name: "Grafic", x: 450, y: 180 }
+  { id: 1,  name: "Alba",              abbr: "AB", x: 378, y: 295 },
+  { id: 2,  name: "Arad",              abbr: "AR", x: 140, y: 268 },
+  { id: 3,  name: "Argeș",             abbr: "AG", x: 485, y: 415 },
+  { id: 4,  name: "Bacău",             abbr: "BC", x: 685, y: 250 },
+  { id: 5,  name: "Bihor",             abbr: "BH", x: 220, y: 195 },
+  { id: 6,  name: "Bistrița-Năsăud",   abbr: "BN", x: 455, y: 168 },
+  { id: 7,  name: "Botoșani",          abbr: "BT", x: 666, y: 118 },
+  { id: 8,  name: "Brăila",            abbr: "BR", x: 775, y: 398 },
+  { id: 9,  name: "Brașov",            abbr: "BV", x: 555, y: 345 },
+  { id: 10, name: "Buzău",             abbr: "BZ", x: 690, y: 390 },
+  { id: 11, name: "Călărași",          abbr: "CL", x: 685, y: 520 },
+  { id: 12, name: "Caraș-Severin",     abbr: "CS", x: 210, y: 395 },
+  { id: 13, name: "Cluj",              abbr: "CJ", x: 370, y: 220 },
+  { id: 14, name: "Constanța",         abbr: "CT", x: 840, y: 503 },
+  { id: 15, name: "Covasna",           abbr: "CV", x: 630, y: 308 },
+  { id: 16, name: "Dâmbovița",         abbr: "DB", x: 558, y: 450 },
+  { id: 17, name: "Dolj",              abbr: "DJ", x: 385, y: 520 },
+  { id: 18, name: "Galați",            abbr: "GL", x: 830, y: 340 },
+  { id: 19, name: "Giurgiu",           abbr: "GR", x: 575, y: 550 },
+  { id: 20, name: "Gorj",              abbr: "GJ", x: 340, y: 405 },
+  { id: 21, name: "Harghita",          abbr: "HR", x: 562, y: 261 },
+  { id: 22, name: "Hunedoara",         abbr: "HD", x: 305, y: 338 },
+  { id: 23, name: "Ialomița",          abbr: "IL", x: 723, y: 459 },
+  { id: 24, name: "Iași",              abbr: "IS", x: 752, y: 173 },
+  { id: 25, name: "Ilfov",             abbr: "IF", x: 650, y: 448 },
+  { id: 26, name: "Maramureș",         abbr: "MM", x: 400, y: 118 },
+  { id: 27, name: "Mehedinți",         abbr: "MJ", x: 298, y: 462 },
+  { id: 28, name: "Mureș",             abbr: "MS", x: 475, y: 250 },
+  { id: 29, name: "Neamț",             abbr: "NT", x: 628, y: 206 },
+  { id: 30, name: "Olt",               abbr: "OT", x: 450, y: 478 },
+  { id: 31, name: "Prahova",           abbr: "PH", x: 603, y: 400 },
+  { id: 32, name: "Sălaj",             abbr: "SJ", x: 308, y: 175 },
+  { id: 33, name: "Satu Mare",         abbr: "SM", x: 292, y: 102 },
+  { id: 34, name: "Sibiu",             abbr: "SB", x: 435, y: 340 },
+  { id: 35, name: "Suceava",           abbr: "SV", x: 590, y: 118 },
+  { id: 36, name: "Teleorman",         abbr: "TR", x: 505, y: 528 },
+  { id: 37, name: "Timiș",             abbr: "TM", x: 155, y: 338 },
+  { id: 38, name: "Tulcea",            abbr: "TL", x: 866, y: 393 },
+  { id: 39, name: "Vâlcea",            abbr: "VL", x: 415, y: 402 },
+  { id: 40, name: "Vaslui",            abbr: "VS", x: 761, y: 239 },
+  { id: 41, name: "Vrancea",           abbr: "VN", x: 715, y: 325 },
+  { id: 42, name: "București",         abbr: "B",  x: 607, y: 490 }
 ];
 
+// Conexiuni geografice între județele României
 const rawConnections = [
-  [1, 2], [1, 24], [1, 25], [1, 26],
-  [2, 3], [2, 5], [2, 25], [2, 27],
-  [3, 4], [3, 27],
-  [4, 5], [4, 6],
-  [5, 6], [5, 25],
-  [6, 24], [6, 26],
-  [7, 8], [7, 9], [7, 26], [7, 30],
-  [8, 9], [8, 30], [8, 11],
-  [9, 29], [9, 27],
-  [10, 11], [10, 28], [10, 29],
-  [11, 12], [11, 14],
-  [12, 13], [12, 30],
-  [13, 14], [13, 15],
-  [14, 15], [14, 17],
-  [15, 23], [15, 28],
-  [16, 17], [16, 21], [16, 22],
-  [17, 18], [17, 20],
-  [18, 19], [18, 20],
-  [19, 20],
-  [20, 21], [20, 22],
-  [21, 22],
-  [22, 23],
-  [23, 28], [23, 29],
-  [24, 26],
-  [25, 27],
-  [28, 29], [28, 30]
+  // AB (Alba)
+  [1,3],[1,9],[1,13],[1,22],[1,28],[1,34],[1,39],
+  // AR (Arad)
+  [2,5],[2,12],[2,22],[2,37],
+  // AG (Argeș)
+  [3,9],[3,16],[3,19],[3,30],[3,36],[3,39],
+  // BC (Bacău)
+  [4,21],[4,29],[4,40],[4,41],
+  // BH (Bihor)
+  [5,13],[5,32],[5,33],
+  // BN (Bistrița-Năsăud)
+  [6,13],[6,21],[6,26],[6,28],[6,35],
+  // BT (Botoșani)
+  [7,24],[7,35],
+  // BR (Brăila)
+  [8,10],[8,18],[8,23],[8,38],[8,41],
+  // BV (Brașov)
+  [9,15],[9,21],[9,28],[9,31],[9,34],[9,41],
+  // BZ (Buzău)
+  [10,23],[10,31],[10,41],
+  // CL (Călărași)
+  [11,19],[11,23],
+  // CS (Caraș-Severin)
+  [12,22],[12,27],[12,37],
+  // CJ (Cluj)
+  [13,26],[13,28],[13,32],
+  // CT (Constanța)
+  [14,38],
+  // CV (Covasna)
+  [15,21],[15,41],
+  // DB (Dâmbovița)
+  [16,25],[16,31],
+  // DJ (Dolj)
+  [17,20],[17,27],[17,30],
+  // GL (Galați)
+  [18,38],[18,40],[18,41],
+  // GR (Giurgiu)
+  [19,25],[19,36],
+  // GJ (Gorj)
+  [20,22],[20,27],[20,39],
+  // HR (Harghita)
+  [21,28],
+  // HD (Hunedoara)
+  [22,34],
+  // IL (Ialomița)
+  [23,25],
+  // IS (Iași)
+  [24,29],[24,35],[24,40],
+  // IF (Ilfov)
+  [25,31],[25,42],
+  // MM (Maramureș)
+  [26,32],[26,33],[26,35],
+  // NT (Neamț)
+  [29,35],
+  // OT (Olt)
+  [30,36],[30,39],
+  // PH (Prahova)
+  [31,41],
+  // SJ (Sălaj)
+  [32,33],
+  // SB (Sibiu)
+  [34,39],
+  // VS (Vaslui)
+  [40,41]
 ];
 
 // Rebuild full adjacency list from connections (ensure symmetry)
@@ -444,8 +495,8 @@ io.on('connection', (socket) => {
 
     room.status = 'playing';
 
-    // Assign bases and colors
-    const baseTerritoryIds = [1, 3, 7];
+    // Assign bases and colors — SM (northwest), GL (southeast), DJ (southwest)
+    const baseTerritoryIds = [33, 18, 17];
     const playerColors = ['#00f0ff', '#ff007f', '#ffea00'];
 
     room.players.forEach((player, idx) => {
@@ -468,6 +519,7 @@ io.on('connection', (socket) => {
       return {
         id: t.id,
         name: t.name,
+        abbr: t.abbr,
         x: t.x,
         y: t.y,
         owner: owner,
@@ -479,7 +531,7 @@ io.on('connection', (socket) => {
       map: mapState,
       turnIndex: 0,
       round: 1,
-      maxRounds: 15,
+      maxRounds: 20,
       activeAttack: null
     };
 
@@ -698,18 +750,21 @@ io.on('connection', (socket) => {
 // Helper for joining room
 function joinRoomHelper(socket, roomCode) {
   const room = rooms[roomCode];
+  const tokenAuth = socket._socketAuthUser;
   const sessionUser = socket.request.session;
-  
+  const authUserId = (tokenAuth && tokenAuth.userId) || (sessionUser && sessionUser.userId);
+  const authUsername = (tokenAuth && tokenAuth.username) || (sessionUser && sessionUser.username);
+
   const playerObj = {
     socketId: socket.id,
-    userId: sessionUser.userId,
-    username: sessionUser.username,
+    userId: authUserId,
+    username: authUsername,
     rating: 1000,
     color: '#4a5568',
     territoriesCount: 0
   };
 
-  db.get('SELECT rating FROM users WHERE id = ?', [sessionUser.userId], (err, row) => {
+  db.get('SELECT rating FROM users WHERE id = ?', [authUserId], (err, row) => {
     if (!err && row) {
       playerObj.rating = row.rating;
     }

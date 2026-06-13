@@ -275,8 +275,6 @@ if (isIndexPage) {
     userTerritories.textContent = currentUser.territories_conquered;
     
     // Connect socket to lobby
-    socket.emit('join-lobby');
-    
     loadLeaderboard();
   }
 
@@ -314,7 +312,8 @@ if (isIndexPage) {
     if (loggedIn) {
       currentUser = user;
       showDashboard();
-    } else {
+    } else if (!currentUser) {
+      // Only redirect to login if user didn't just log in via HTTP
       showAuth();
     }
   });

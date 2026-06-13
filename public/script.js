@@ -1,7 +1,7 @@
 // Detect if running locally or on hosted production backend (e.g. Render)
 const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? '' // Local development (relative paths)
-  : 'https://mathquiztador-backend.onrender.com'; // Replace with deployed Render backend URL
+  : 'https://mathquiz-backend-uakf.onrender.com'; // Replace with deployed Render backend URL
 
 // Connect to Socket.io
 const socket = io(BACKEND_URL);

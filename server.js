@@ -6,6 +6,10 @@ const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+
+// In-memory socket auth tokens (token -> { userId, username })
+const socketTokens = new Map();
 
 const app = express();
 const server = http.createServer(app);
@@ -88,6 +92,15 @@ io.use((socket, next) => {
   sessionMiddleware(socket.request, socket.request.res || {}, next);
 });
 
+// Socket.io token auth middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth && socket.handshake.auth.token;
+  if (token && socketTokens.has(token)) {
+    socket._socketAuthUser = socketTokens.get(token);
+  }
+  next();
+});
+
 // Helper functions for DB queries (using Promises)
 const dbGet = (sql, params = []) => {
   return new Promise((resolve, reject) => {
@@ -163,8 +176,14 @@ app.post('/api/login', async (req, res) => {
 
     req.session.userId = user.id;
     req.session.username = user.username;
+
+    // Generate socket auth token
+    const socketToken = crypto.randomBytes(32).toString('hex');
+    socketTokens.set(socketToken, { userId: user.id, username: user.username });
+
     res.json({
       success: true,
+      socketToken,
       user: {
         id: user.id,
         username: user.username,
@@ -182,6 +201,10 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.post('/api/logout', (req, res) => {
+  // Remove socket token
+  const token = req.body && req.body.socketToken;
+  if (token) socketTokens.delete(token);
+
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({ error: 'Nu s-a putut efectua logout-ul!' });
@@ -308,10 +331,11 @@ const rooms = {};
 io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
-  // Retrieve user session
+  // Retrieve user identity: token auth takes priority over session cookie
+  const tokenAuth = socket._socketAuthUser;
   const sessionUser = socket.request.session;
-  let loggedUsername = sessionUser ? sessionUser.username : null;
-  let loggedUserId = sessionUser ? sessionUser.userId : null;
+  let loggedUsername = (tokenAuth && tokenAuth.username) || (sessionUser && sessionUser.username) || null;
+  let loggedUserId = (tokenAuth && tokenAuth.userId) || (sessionUser && sessionUser.userId) || null;
 
   // Track the current room
   socket.currentRoom = null;

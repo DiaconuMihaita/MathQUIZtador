@@ -3,8 +3,12 @@ const BACKEND_URL = window.location.hostname === 'localhost' || window.location.
   ? '' // Local development (relative paths)
   : 'https://mathquiz-backend-uakf.onrender.com'; // Replace with deployed Render backend URL
 
-// Connect to Socket.io
-const socket = io(BACKEND_URL, { withCredentials: true });
+// Connect to Socket.io (use stored token if available for cross-domain auth)
+const _storedToken = localStorage.getItem('socketToken');
+const socket = io(BACKEND_URL, {
+  withCredentials: true,
+  auth: _storedToken ? { token: _storedToken } : {}
+});
 
 // Map Graph Data (Must match server definitions)
 const territoriesList = [
@@ -164,6 +168,12 @@ if (isIndexPage) {
         authError.classList.remove('hidden');
       } else {
         currentUser = data.user;
+        // Store token and reconnect socket with auth
+        if (data.socketToken) {
+          localStorage.setItem('socketToken', data.socketToken);
+          socket.auth = { token: data.socketToken };
+          socket.disconnect().connect();
+        }
         showDashboard();
       }
     } catch (err) {
@@ -217,7 +227,15 @@ if (isIndexPage) {
 
   // Logout Action
   logoutBtn.addEventListener('click', async () => {
-    await fetch(`${BACKEND_URL}/api/logout`, { method: 'POST', credentials: 'include' });
+    const socketToken = localStorage.getItem('socketToken');
+    await fetch(`${BACKEND_URL}/api/logout`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ socketToken })
+    });
+    localStorage.removeItem('socketToken');
+    socket.auth = { token: null };
     currentUser = null;
     showAuth();
   });

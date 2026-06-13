@@ -11,8 +11,9 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: true,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 const PORT = process.env.PORT || 3000;
@@ -21,10 +22,12 @@ app.set('trust proxy', 1);
 
 // Enable CORS for Express REST API
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Vary', 'Origin');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
@@ -69,7 +72,11 @@ const sessionMiddleware = session({
   secret: 'conquiztador-mate-super-secret-key-11',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'none',
+    secure: true
+  }
 });
 
 app.use(sessionMiddleware);

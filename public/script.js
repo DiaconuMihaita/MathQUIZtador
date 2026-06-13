@@ -4,7 +4,7 @@ const BACKEND_URL = window.location.hostname === 'localhost' || window.location.
   : 'https://mathquiz-backend-uakf.onrender.com'; // Replace with deployed Render backend URL
 
 // Connect to Socket.io
-const socket = io(BACKEND_URL);
+const socket = io(BACKEND_URL, { withCredentials: true });
 
 // Map Graph Data (Must match server definitions)
 const territoriesList = [
@@ -154,6 +154,7 @@ if (isIndexPage) {
     try {
       const res = await fetch(`${BACKEND_URL}/api/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
@@ -189,6 +190,7 @@ if (isIndexPage) {
     try {
       const res = await fetch(`${BACKEND_URL}/api/register`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password })
       });
@@ -215,7 +217,7 @@ if (isIndexPage) {
 
   // Logout Action
   logoutBtn.addEventListener('click', async () => {
-    await fetch(`${BACKEND_URL}/api/logout`, { method: 'POST' });
+    await fetch(`${BACKEND_URL}/api/logout`, { method: 'POST', credentials: 'include' });
     currentUser = null;
     showAuth();
   });
@@ -260,7 +262,7 @@ if (isIndexPage) {
     
     // Refresh user profile details
     try {
-      const profileRes = await fetch(`${BACKEND_URL}/api/profile`);
+      const profileRes = await fetch(`${BACKEND_URL}/api/profile`, { credentials: 'include' });
       if (profileRes.ok) {
         currentUser = await profileRes.json();
       }
@@ -281,7 +283,7 @@ if (isIndexPage) {
   async function loadLeaderboard() {
     leaderboardBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Se încarcă clasamentul...</td></tr>';
     try {
-      const res = await fetch(`${BACKEND_URL}/api/leaderboard`);
+      const res = await fetch(`${BACKEND_URL}/api/leaderboard`, { credentials: 'include' });
       const leaderboard = await res.json();
       leaderboardBody.innerHTML = '';
       

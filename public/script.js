@@ -1,5 +1,10 @@
+// Detect if running locally or on hosted production backend (e.g. Render)
+const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? '' // Local development (relative paths)
+  : 'https://mathquiztador-backend.onrender.com'; // Replace with deployed Render backend URL
+
 // Connect to Socket.io
-const socket = io();
+const socket = io(BACKEND_URL);
 
 // Map Graph Data (Must match server definitions)
 const territoriesList = [
@@ -147,7 +152,7 @@ if (isIndexPage) {
     const password = document.getElementById('login-password').value;
 
     try {
-      const res = await fetch('/api/login', {
+      const res = await fetch(`${BACKEND_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -182,7 +187,7 @@ if (isIndexPage) {
     }
 
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch(`${BACKEND_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password })
@@ -210,7 +215,7 @@ if (isIndexPage) {
 
   // Logout Action
   logoutBtn.addEventListener('click', async () => {
-    await fetch('/api/logout', { method: 'POST' });
+    await fetch(`${BACKEND_URL}/api/logout`, { method: 'POST' });
     currentUser = null;
     showAuth();
   });
@@ -255,7 +260,7 @@ if (isIndexPage) {
     
     // Refresh user profile details
     try {
-      const profileRes = await fetch('/api/profile');
+      const profileRes = await fetch(`${BACKEND_URL}/api/profile`);
       if (profileRes.ok) {
         currentUser = await profileRes.json();
       }
@@ -276,7 +281,7 @@ if (isIndexPage) {
   async function loadLeaderboard() {
     leaderboardBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Se încarcă clasamentul...</td></tr>';
     try {
-      const res = await fetch('/api/leaderboard');
+      const res = await fetch(`${BACKEND_URL}/api/leaderboard`);
       const leaderboard = await res.json();
       leaderboardBody.innerHTML = '';
       

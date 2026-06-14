@@ -471,6 +471,8 @@ if (isGamePage) {
   // Normal socket game events
   socket.on('game-started', (state) => {
     activeGameState = state;
+    if (state.code) gameRoomCodeEl.textContent = state.code;
+    currentRoundEl.textContent = `${state.round}/${state.maxRounds}`;
     renderScoreboard();
     renderSvgMap();
     updateTurnBanner();

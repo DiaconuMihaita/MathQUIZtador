@@ -536,6 +536,7 @@ io.on('connection', (socket) => {
     };
 
     io.to(room.code).emit('game-started', {
+      code: room.code,
       players: room.players,
       map: room.gameState.map,
       turnIndex: room.gameState.turnIndex,
@@ -780,6 +781,171 @@ function joinRoomHelper(socket, roomCode) {
       roomCode: roomCode
     });
   });
+}
+
+// ============================================================
+// GAME LOGIC HELPERS
+// ============================================================
+
+// Called when a player answers correctly or all answered wrong
+function concludeAttack(room, winnerId) {
+  const gameState = room.gameState;
+  const attack = gameState.activeAttack;
+  if (!attack) return;
+
+  const targetTerritory = gameState.map.find(t => t.id === attack.targetId);
+  let winnerUsername = null;
+
+  if (winnerId) {
+    // Give the territory to the winner
+    const oldOwner = targetTerritory.owner;
+    targetTerritory.owner = winnerId;
+    const winnerPlayer = room.players.find(p => p.socketId === winnerId);
+    if (winnerPlayer) {
+      targetTerritory.color = winnerPlayer.color;
+      winnerPlayer.territoriesCount += 1;
+      winnerUsername = winnerPlayer.username;
+    }
+    // Reduce old owner's count
+    if (oldOwner) {
+      const oldOwnerPlayer = room.players.find(p => p.socketId === oldOwner);
+      if (oldOwnerPlayer && oldOwnerPlayer.territoriesCount > 0) {
+        oldOwnerPlayer.territoriesCount -= 1;
+      }
+    }
+  }
+
+  io.to(room.code).emit('answer-result', {
+    winnerId,
+    winnerUsername,
+    correctIndex: attack.correctIndex,
+    targetId: attack.targetId,
+    newOwnerColor: targetTerritory.color,
+    players: room.players
+  });
+
+  gameState.activeAttack = null;
+
+  // Advance turn
+  setTimeout(() => {
+    advanceTurn(room);
+  }, 3500);
+}
+
+// Called when timer runs out with no correct answer
+function handleQuestionTimeout(roomCode) {
+  const room = rooms[roomCode];
+  if (!room || !room.gameState || !room.gameState.activeAttack) return;
+  concludeAttack(room, null);
+}
+
+// Advance to next turn (or end game)
+function advanceTurn(room) {
+  const gameState = room.gameState;
+  if (!gameState) return;
+
+  // Advance turn index (skip players with 0 territories only if they never had any at start — everyone starts with 1)
+  gameState.turnIndex = (gameState.turnIndex + 1) % room.players.length;
+
+  // If we've gone through all players, increment round
+  if (gameState.turnIndex === 0) {
+    gameState.round += 1;
+  }
+
+  // Check if game over (max rounds reached)
+  if (gameState.round > gameState.maxRounds) {
+    endGame(room);
+    return;
+  }
+
+  // Check if only one player has territories (others have 0)
+  const activePlayers = room.players.filter(p => p.territoriesCount > 0);
+  if (activePlayers.length === 1) {
+    endGame(room);
+    return;
+  }
+
+  io.to(room.code).emit('new-turn', {
+    turnIndex: gameState.turnIndex,
+    round: gameState.round
+  });
+}
+
+// End game and calculate ratings
+async function endGame(room) {
+  room.status = 'finished';
+
+  // Sort by territories (desc)
+  const sorted = [...room.players].sort((a, b) => b.territoriesCount - a.territoriesCount);
+  const winner = sorted[0];
+
+  const ratingChanges = sorted.map((p, idx) => {
+    if (idx === 0) return 50;
+    if (idx === 1) return -30;
+    return -20;
+  });
+
+  // Update DB ratings
+  for (let i = 0; i < sorted.length; i++) {
+    const p = sorted[i];
+    const change = ratingChanges[i];
+    const isWinner = i === 0;
+    try {
+      await dbRun(
+        `UPDATE users SET rating = rating + ?, wins = wins + ?, losses = losses + ?, territories_conquered = territories_conquered + ? WHERE id = ?`,
+        [change, isWinner ? 1 : 0, isWinner ? 0 : 1, p.territoriesCount, p.userId]
+      );
+    } catch (e) {
+      console.error('Rating update error:', e);
+    }
+  }
+
+  const ranking = sorted.map((p, idx) => ({
+    username: p.username,
+    color: p.color,
+    territoriesCount: p.territoriesCount,
+    newRating: p.rating + ratingChanges[idx],
+    ratingChange: ratingChanges[idx]
+  }));
+
+  io.to(room.code).emit('game-over', {
+    winnerUsername: winner.username,
+    ranking,
+    disconnected: false
+  });
+
+  // Clean up room after 30s
+  setTimeout(() => {
+    delete rooms[room.code];
+  }, 30000);
+}
+
+// End game due to disconnect
+function endGameDueToDisconnect(room) {
+  room.status = 'finished';
+
+  // Whoever is left wins by default
+  const remaining = room.players;
+  const winner = remaining.length > 0 ? remaining[0] : null;
+
+  const ranking = remaining.map((p, idx) => ({
+    username: p.username,
+    color: p.color,
+    territoriesCount: p.territoriesCount,
+    newRating: p.rating,
+    ratingChange: 0
+  }));
+
+  io.to(room.code).emit('game-over', {
+    winnerUsername: winner ? winner.username : '—',
+    ranking,
+    disconnected: true,
+    message: 'Un jucător s-a deconectat. Jocul s-a încheiat.'
+  });
+
+  setTimeout(() => {
+    delete rooms[room.code];
+  }, 30000);
 }
 
 server.listen(PORT, () => {
